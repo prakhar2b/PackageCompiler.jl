@@ -103,8 +103,11 @@ function rewrite_sysimg_jl_only_needed_stdlibs(stdlibs::Vector{String})
     sysimg_content = read(sysimg_source_path, String)
     # replaces the hardcoded list of stdlibs in sysimg.jl with
     # the stdlibs that is given as argument
-    return replace(sysimg_content,
+    content = replace(sysimg_content,
         r"stdlibs = \[(.*?)\]"s => string("stdlibs = [", join(":" .* stdlibs, ",\n"), "]"))
+    # Also replace a maximum call with hardcoded value, see https://github.com/JuliaLang/julia/pull/34727
+    content = replace(content, "maximum(textwidth.(string.(stdlibs)))" => "14")
+    return content
 end
 
 function create_fresh_base_sysimage(stdlibs::Vector{String}; cpu_target::String)
